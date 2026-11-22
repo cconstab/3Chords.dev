@@ -1,0 +1,61 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: npm test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # zero dependencies, so there is nothing to install
+      - run: npm test
+
+  docker:
+    name: docker image builds and boots
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build --load -t threechords:ci .
+      - name: Start container
+        run: docker run -d --name threechords -p 8080:8080 threechords:ci
+      - name: Wait for healthcheck
+        run: |
+          for _ in $(seq 1 30); do
+            health=$(docker inspect -f '{{.State.Health.Status}}' threechords)
+            echo "health: $health"
+            [ "$health" = healthy ] && break
+            sleep 2
+          done
+          [ "$health" = healthy ] || { docker logs threechords; exit 1; }
+      - name: Smoke test
+        run: |
+          curl -fsS http://localhost:8080/api/health
+          curl -fsS http://localhost:8080/ | grep -q '3CHORDS'
+          curl -fsS -o /dev/null http://localhost:8080/js/jukebox.js
+          # server source and data must never be served
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/server.js)" = 404
+      - name: Container logs
+        if: always()
+        run: docker logs threechords || true

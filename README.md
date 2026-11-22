@@ -1,5 +1,7 @@
 # 3CHORDS.DEV — punk programming HQ
 
+[![tests](https://github.com/cconstab/3Chords.dev/actions/workflows/test.yml/badge.svg)](https://github.com/cconstab/3Chords.dev/actions/workflows/test.yml)
+
 Three chords and a prompt. A community wall where people who build with AI share
 what they made, what broke, and what they learned.
 
