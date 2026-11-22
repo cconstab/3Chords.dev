@@ -1,0 +1,5 @@
+# Auto-deploy for 3CHORDS.DEV. Runs as you, not root: add it with `crontab -e`.
+# Change the path to wherever the checkout lives.
+#   flock   skips a run if the previous one is still going
+#   logger  sends the output to the system log: journalctl -t 3chords-update
+*/2 * * * * flock -n /tmp/3chords-update.lock "$HOME/3Chords.dev/deploy/update.sh" 2>&1 | logger -t 3chords-update

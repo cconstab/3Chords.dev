@@ -1,6 +1,7 @@
 #!/bin/sh
 # Pull the newest published images and restart whatever changed.
-# Runs every couple of minutes from 3chords-update.timer; safe to run by hand.
+# Runs every couple of minutes from your own crontab (see crontab.example), as
+# your user, not root. Safe to run by hand.
 #
 #   .env          -> production (image tag from IMAGE_TAG, default "latest")
 #   .env.staging  -> staging    (image tag "staging")
