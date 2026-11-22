@@ -1,10 +1,19 @@
 # 3CHORDS.DEV — one small image: static site + API. Zero npm dependencies, so no install step.
-FROM node:22.11.0-alpine3.20
+# Base image is kept current by Dependabot (.github/dependabot.yml).
+FROM node:24.22.3-alpine3.24
 
 ENV NODE_ENV=production \
     PORT=8080 \
     HOST=0.0.0.0 \
     DATA_DIR=/data
+
+# Pick up Alpine security fixes released since the base image was built, and drop
+# npm/yarn/corepack: the server never uses them, and they only add attack surface.
+# The database lives on a volume, owned by the unprivileged node user.
+RUN apk upgrade --no-cache \
+ && rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx \
+           /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg /opt/yarn-* \
+ && mkdir -p /data && chown node:node /data
 
 WORKDIR /app
 
@@ -16,10 +25,7 @@ COPY --chown=node:node js ./js
 COPY --chown=node:node fonts ./fonts
 COPY --chown=node:node img ./img
 
-# the database lives on a volume, owned by the unprivileged node user
-RUN mkdir -p /data && chown node:node /data
 VOLUME ["/data"]
-
 USER node
 EXPOSE 8080
 
