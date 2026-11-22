@@ -1,10 +1,14 @@
-# docker compose up -d --build     -> http://<this-host>:8080
+# docker compose up -d             -> runs the image CI published (ghcr.io/cconstab/3chords.dev)
+# docker compose up -d --build     -> builds from this checkout instead
 # Settings come from .env (copy .env.example). The database lives in the named volume `wall-data`.
+# Staging runs from the same file with its own settings, project and volume:
+#   docker compose -p threechords-staging --env-file .env.staging up -d
 services:
   web:
     build: .
-    image: threechords:latest
-    container_name: threechords
+    # :latest is the newest release, :staging is the tip of main
+    image: ghcr.io/cconstab/3chords.dev:${IMAGE_TAG:-latest}
+    container_name: ${CONTAINER_NAME:-threechords}
     restart: unless-stopped
     init: true
     ports:

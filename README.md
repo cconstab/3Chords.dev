@@ -39,15 +39,15 @@ Opening `index.html` straight from disk also works: it runs in **offline demo mo
 
 ```sh
 cp .env.example .env          # set ADMIN_TOKEN (openssl rand -hex 24)
-docker compose up -d --build  # http://<host>:8080
+docker compose up -d          # runs the published image, http://<host>:8080
 docker compose logs -f        # watch it
 docker compose down           # stop (data is kept in the `wall-data` volume)
 ```
 
-The image is small (`node:22-alpine`, no npm install). It runs as the unprivileged `node` user on a read-only filesystem with all capabilities dropped, and has a built-in healthcheck. The database is the named volume `wall-data`, mounted at `/data`.
+`docker compose up -d` runs the image CI publishes to `ghcr.io/cconstab/3chords.dev`. Add `--build` to build from your checkout instead. The image is small (`node:26-alpine`, no npm install). It runs as the unprivileged `node` user on a read-only filesystem with all capabilities dropped, and has a built-in healthcheck. The database is the named volume `wall-data`, mounted at `/data`.
 
 - **Back up:** `docker compose cp web:/data/db.json ./backup-$(date +%F).json`
-- **Update:** `git pull && docker compose up -d --build`. The volume is untouched.
+- **Update:** automatic, see [Staging + auto-deploy](#staging--auto-deploy). By hand: `docker compose pull && docker compose up -d`. The volume is untouched.
 - **Wipe everything:** `docker compose down -v`. This deletes all posts and signatures.
 
 `.env.example` holds the **production** settings: `TRUST_PROXY=1`, `PUBLIC_ORIGIN=https://3chords.dev`, and the container published on `127.0.0.1:8080` only, so the proxy is the only way in. For LAN or local testing, leave `TRUST_PROXY` and `PUBLIC_ORIGIN` empty and set `PUBLISH_PORT=8080`. Over plain `http://` on a LAN, browsers disable the modern clipboard API and `navigator.share`. The site falls back to an older copy method automatically.
@@ -66,9 +66,62 @@ The image is small (`node:22-alpine`, no npm install). It runs as the unprivileg
 threechords.dev, www.threechords.dev, www.3chords.dev {
   redir https://3chords.dev{uri} permanent
 }
+
+# staging: tip of main, kept out of search engines
+staging.3chords.dev {
+  encode zstd gzip
+  header X-Robots-Tag "noindex, nofollow"
+  reverse_proxy 127.0.0.1:8081
+}
 ```
 
-Point the DNS `A`/`AAAA` records for all four names at the server, then run `sudo systemctl reload caddy`. Caddy keeps the Host header and sets `X-Forwarded-For`, which is exactly what `TRUST_PROXY=1` and `PUBLIC_ORIGIN` expect.
+Point the DNS `A`/`AAAA` records for all five names at the server, then run `sudo systemctl reload caddy`. Caddy keeps the Host header and sets `X-Forwarded-For`, which is exactly what `TRUST_PROXY=1` and `PUBLIC_ORIGIN` expect.
+
+## Staging + auto-deploy
+
+Nobody deploys by hand. CI publishes images, and the host pulls them.
+
+| what happens | image tag | where it shows up |
+|---|---|---|
+| a PR is merged to `main` and tests pass | `:staging` (and `:sha-<commit>`) | https://staging.3chords.dev, a few minutes later |
+| a GitHub release is published | `:latest` and `:<release tag>` | https://3chords.dev, a few minutes later |
+
+So the routine is: merge PRs, look at staging, and when it's good, publish a release (`gh release create v1.2.0 --generate-notes`). A pre-release gets its own tag but does not touch production.
+
+The publishing is the `publish` job in [`.github/workflows/test.yml`](.github/workflows/test.yml). It only runs after the tests and the Docker boot check pass. The host side is [`deploy/update.sh`](deploy/update.sh), run every 2 minutes by a systemd timer: it pulls both tags, restarts a container only when its image changed, and waits for the healthcheck. The host needs no inbound access and CI holds no server credentials.
+
+`curl https://staging.3chords.dev/api/health` shows which build is live (`"version":"main-<commit>"` on staging, the release tag on production).
+
+Staging is a second container on the same host, from the same `compose.yaml`, with its own port (8081) and its own database volume. It never sees production data.
+
+### One-time host setup
+
+The examples assume the checkout is at `/opt/3chords`. If yours is elsewhere, change the path in `deploy/3chords-update.service`. **Keep using the directory production already runs from**: Compose names the database volume after it.
+
+```sh
+cd /opt/3chords && git pull
+
+# the image is private: log in once, as root, because the timer runs as root.
+# Use a classic personal access token with only the read:packages scope.
+sudo docker login ghcr.io -u cconstab
+
+# staging
+cp .env.staging.example .env.staging     # set ADMIN_TOKEN (openssl rand -hex 24)
+
+# the updater
+sudo cp deploy/3chords-update.service deploy/3chords-update.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now 3chords-update.timer
+
+sudo deploy/update.sh                    # first run by hand, to see it work
+journalctl -u 3chords-update -f          # what it has been doing
+```
+
+Also add the `staging.3chords.dev` DNS record and the Caddy block above.
+
+- **Roll back / hold production still:** set `IMAGE_TAG=v1.1.0` in `.env` and run `sudo deploy/update.sh`. Set it back to `latest` to follow releases again.
+- **Pause auto-deploy:** `sudo systemctl stop 3chords-update.timer`.
+- **Changes to `compose.yaml` or `deploy/`** are not picked up automatically; `git pull` on the host for those.
 
 ## Deploy without Docker
 
@@ -111,6 +164,7 @@ server.js                              static files + JSON API + storage
 data-seed.json                         starter "house" posts for a fresh database
 fonts/  img/                           self-hosted fonts (see fonts/LICENSES.txt), icons, share image
 test/server.test.js                    API tests
+deploy/                                host-side auto-update script + systemd timer
 ```
 
 ## Before launch
