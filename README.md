@@ -88,7 +88,7 @@ Nobody deploys by hand. CI publishes images, and the host pulls them.
 
 So the routine is: merge PRs, look at staging, and when it's good, publish a release (`gh release create v1.2.0 --generate-notes`). A pre-release gets its own tag but does not touch production.
 
-The publishing is the `publish` job in [`.github/workflows/test.yml`](.github/workflows/test.yml). It only runs after the tests and the Docker boot check pass. The host side is [`deploy/update.sh`](deploy/update.sh), run every 2 minutes by a systemd timer: it pulls both tags, restarts a container only when its image changed, and waits for the healthcheck. The host needs no inbound access and CI holds no server credentials.
+The publishing is the `publish` job in [`.github/workflows/test.yml`](.github/workflows/test.yml). It only runs after the tests and the Docker boot check pass. The host side is [`deploy/update.sh`](deploy/update.sh), run every 2 minutes from your own crontab: it pulls both tags, restarts a container only when its image changed, and waits for the healthcheck. The host needs no inbound access and CI holds no server credentials.
 
 `curl https://staging.3chords.dev/api/health` shows which build is live (`"version":"main-<commit>"` on staging, the release tag on production).
 
@@ -96,31 +96,29 @@ Staging is a second container on the same host, from the same `compose.yaml`, wi
 
 ### One-time host setup
 
-The examples assume the checkout is at `/opt/3chords`. If yours is elsewhere, change the path in `deploy/3chords-update.service`. **Keep using the directory production already runs from**: Compose names the database volume after it.
+Everything runs as your own user, not root. That user must be able to run `docker` without `sudo` (be in the `docker` group). **Keep using the directory production already runs from**: Compose names the database volume after it.
 
 ```sh
-cd /opt/3chords && git pull
+cd ~/3Chords.dev && git pull             # wherever your checkout is
 
-# the image is private: log in once, as root, because the timer runs as root.
-# Use a classic personal access token with only the read:packages scope.
-sudo docker login ghcr.io -u cconstab
+# the image is private, so log in once. Use a classic personal access token
+# with only the read:packages scope. The login is saved in ~/.docker/config.json.
+docker login ghcr.io -u cconstab
 
 # staging
 cp .env.staging.example .env.staging     # set ADMIN_TOKEN (openssl rand -hex 24)
 
-# the updater
-sudo cp deploy/3chords-update.service deploy/3chords-update.timer /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now 3chords-update.timer
+deploy/update.sh                         # first run by hand, to see it work
 
-sudo deploy/update.sh                    # first run by hand, to see it work
-journalctl -u 3chords-update -f          # what it has been doing
+# then let cron do it: paste the line from deploy/crontab.example, fixing the path
+crontab -e
+journalctl -t 3chords-update -f          # what it has been doing
 ```
 
 Also add the `staging.3chords.dev` DNS record and the Caddy block above.
 
-- **Roll back / hold production still:** set `IMAGE_TAG=v1.1.0` in `.env` and run `sudo deploy/update.sh`. Set it back to `latest` to follow releases again.
-- **Pause auto-deploy:** `sudo systemctl stop 3chords-update.timer`.
+- **Roll back / hold production still:** set `IMAGE_TAG=v1.1.0` in `.env` and run `deploy/update.sh`. Set it back to `latest` to follow releases again.
+- **Pause auto-deploy:** comment the line out with `crontab -e`.
 - **Changes to `compose.yaml` or `deploy/`** are not picked up automatically; `git pull` on the host for those.
 
 ## Deploy without Docker
@@ -164,7 +162,7 @@ server.js                              static files + JSON API + storage
 data-seed.json                         starter "house" posts for a fresh database
 fonts/  img/                           self-hosted fonts (see fonts/LICENSES.txt), icons, share image
 test/server.test.js                    API tests
-deploy/                                host-side auto-update script + systemd timer
+deploy/                                host-side auto-update script + crontab line
 ```
 
 ## Before launch
