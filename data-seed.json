@@ -1,0 +1,37 @@
+[
+  {
+    "flavor": "ZINE",
+    "title": "WELCOME TO THE WALL. STAPLE SOMETHING UP.",
+    "body": "This wall is the scene. Post what you built, what broke, what you learned, what you're mad about. Short is good. Honest is better. Read the house rules, then go loud."
+  },
+  {
+    "flavor": "RIFF",
+    "title": "THE 3-LINE PROMPT THAT STOPS AI OVER-ENGINEERING",
+    "body": "\"Prefer the shortest working code. No new abstractions unless I ask. If a feature isn't shipping this week, cut it.\" Paste it at the top of your session. Watch the file count drop."
+  },
+  {
+    "flavor": "TUTORIAL",
+    "title": "SHIP A ONE-PAGE SITE IN AN AFTERNOON",
+    "body": "1. Describe the page out loud to your AI. 2. Ask for ONE html file, no build step. 3. Open it in a browser and complain until it's right. 4. Drag the file onto any static host. Done. Post the URL here."
+  },
+  {
+    "flavor": "HOT TAKE",
+    "title": "'PRODUCTION-READY' IS A FEELING, NOT A CHECKLIST",
+    "body": "If three people use it and one of them would be annoyed if it vanished, it's in production. Back it up, write down how to restart it, and keep shipping."
+  },
+  {
+    "flavor": "FIELD NOTE",
+    "title": "THE COMPILER ISN'T A CRITIC. IT'S THE SOUND GUY.",
+    "body": "An error message isn't telling you that you can't play. It's telling you a cable is loose. Paste the whole error, ask what it means in plain words, wiggle the cable, keep playing."
+  },
+  {
+    "flavor": "TUTORIAL",
+    "title": "WHEN YOU'RE STUCK: SHRINK THE SONG",
+    "body": "Stuck for more than 20 minutes? Throw out half the scope. Ask your AI for the smallest version that still does the one thing you care about. Ship that. The rest is a sequel."
+  },
+  {
+    "flavor": "COMPLAINT",
+    "title": "WHY DOES EVERY TOOL MAKE ME SIGN UP FIRST",
+    "body": "Imagine a venue with a waitlist. If your project needs an account before it shows anyone anything, ask yourself if it really does. Let people hear the song first."
+  }
+]

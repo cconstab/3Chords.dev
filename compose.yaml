@@ -1,0 +1,32 @@
+# docker compose up -d --build     -> http://<this-host>:8080
+# Settings come from .env (copy .env.example). The database lives in the named volume `wall-data`.
+services:
+  web:
+    build: .
+    image: threechords:latest
+    container_name: threechords
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${PUBLISH_PORT:-8080}:8080"
+    environment:
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      # Set TRUST_PROXY=1 only when a reverse proxy (Caddy, nginx, Traefik) sits in front
+      # and sets X-Forwarded-For. Leave it empty when browsers connect directly.
+      TRUST_PROXY: ${TRUST_PROXY:-}
+      # e.g. https://3chords.dev, when the proxy rewrites the Host header
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-}
+      HIDE_AFTER: ${HIDE_AFTER:-3}
+    volumes:
+      - wall-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 10s
+
+volumes:
+  wall-data:
