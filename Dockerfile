@@ -1,6 +1,6 @@
 # 3CHORDS.DEV — one small image: static site + API. Zero npm dependencies, so no install step.
 # Base image is kept current by Dependabot (.github/dependabot.yml).
-FROM node:24.22.3-alpine3.24
+FROM node:26.13.1-alpine3.24
 
 ENV NODE_ENV=production \
     PORT=8080 \
