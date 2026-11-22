@@ -118,6 +118,14 @@ test/server.test.js                    API tests
 - [ ] Point DNS for 3chords.dev, threechords.dev and both www. names at the server, and install the Caddyfile above
 - [ ] Back up `db.json` on a schedule
 
+## Add a riff to the jukebox
+
+The jukebox setlist lives in [`js/jukebox.js`](js/jukebox.js): three plain lists that fill in *"I'm building **idea**. I've got **tool**. My rule: **nerve**."* Got a better one? Open a PR that adds a line.
+
+- **Only add to the end of a list.** Shared song links store positions, so moving or deleting an entry breaks links people have already posted. `npm test` checks this against `test/jukebox.lock.json`.
+- Ideas start with "a" or "an". Tools finish "I've got…". Nerves are an instruction ("ship it from the bus").
+- Lowercase start, no full stop, under 90 characters, and kind.
+
 ## License
 
 MIT, see [LICENSE](LICENSE). Copy us, remix us, outdo us. The fonts in `fonts/` keep their own open licenses (see `fonts/LICENSES.txt`).

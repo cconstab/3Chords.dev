@@ -463,58 +463,8 @@
   /* ============================================================
      THE JUKEBOX
      ============================================================ */
-  const ideas = [
-    'a tiny site that shows ONE good thing per day',
-    "a form that drafts the apology email you've been avoiding",
-    'a CLI that renames your messy screenshots so you can find them',
-    'a page that shows only the three most urgent things on your todo list',
-    'a bot that leaves encouraging comments on your own old code',
-    'a one-button mood journal that logs an emoji and the weather',
-    'a browser extension that hides every like count',
-    'a script that turns your git log into a zine page every Friday',
-    'a page where friends can leave you anonymous compliments',
-    'a markdown-to-flyer converter that outputs a punk gig poster',
-    'a tool that reads your calendar and tells you when to go home',
-    'a tiny multiplayer whiteboard with three colors and no undo',
-    "a 'show your work' feed for things you half-finished",
-    "an RSS reader that strips everything except the text and the author's name",
-    'a price tracker for the one thing you keep almost buying',
-    'a setlist generator for your next band practice',
-    'a plant-watering reminder that guilt-trips you in the plant\'s voice',
-    'a page that turns your notes app into a public "now" page',
-  ];
-  const tools = [
-    'a terminal, an AI coding assistant and 90 minutes',
-    'a plain HTML file and the Fetch API',
-    'a voice-memo brain dump pasted into an AI chat',
-    'a spreadsheet, a webhook and spite',
-    'an AI-enabled editor and whichever model is cheapest today',
-    'a Raspberry Pi you forgot you owned',
-    'one Bash script and a cron job',
-    'your phone and a boring meeting',
-    'a static host, a markdown file and 20 minutes',
-    'three tabs: an AI chat, an online code playground and your nerve',
-    'a hosted database free tier and a stolen afternoon',
-    'a plain text file, honestly',
-    'a serverless function and a domain you already own',
-    'your notes app and refusing to install anything new',
-  ];
-  const nerves = [
-    'post it before you fix the typo',
-    'tell exactly one friend before you touch another line',
-    'give it a URL by sundown — the URL is the deadline',
-    'message the person whose work inspired it and say so',
-    'put it in your bio for a week and see who clicks',
-    'demo it at the next open mic even if it crashes',
-    'charge $1 for it and see if one person pays',
-    "write the 'why I made this' before you write the code",
-    'add a feedback link and read every reply out loud',
-    "put a big 'MADE IN AN AFTERNOON' badge on it",
-    'release v0.1 publicly before you decide what v1 is',
-    'give yourself 48 hours, then walk away',
-    'ask the AI to argue with your first instinct, then pick a side',
-    'post a field note about it on the wall tonight',
-  ];
+  // the setlist lives in js/jukebox.js so anyone can add riffs with a one-line PR
+  const { ideas, tools, nerves } = window.JUKEBOX || { ideas: ['a tiny thing'], tools: ['a laptop'], nerves: ['ship it'] };
   const slots = {
     idea: { el: $('#jk-idea'), list: ideas, i: -1, locked: false },
     tool: { el: $('#jk-tool'), list: tools, i: -1, locked: false },
