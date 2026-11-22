@@ -1,0 +1,11 @@
+# Installed by the README's "Auto-deploy" steps. Adjust the path if the checkout
+# lives somewhere other than /opt/3chords.
+[Unit]
+Description=3CHORDS.DEV: pull new images and restart
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/3chords/deploy/update.sh

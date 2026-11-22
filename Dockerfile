@@ -25,6 +25,14 @@ COPY --chown=node:node js ./js
 COPY --chown=node:node fonts ./fonts
 COPY --chown=node:node img ./img
 
+# Which build this is; shown by /api/health. CI passes the release tag or main-<sha>.
+# Kept late so it doesn't invalidate the layers above.
+ARG APP_VERSION=dev
+ENV APP_VERSION=$APP_VERSION
+LABEL org.opencontainers.image.source="https://github.com/cconstab/3Chords.dev" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.version=$APP_VERSION
+
 VOLUME ["/data"]
 USER node
 EXPOSE 8080

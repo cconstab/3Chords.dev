@@ -264,7 +264,7 @@ async function api(req, res, url) {
 
   // GET /api/health
   if (parts[1] === 'health' && method === 'GET') {
-    return send(res, 200, { ok: true, posts: db.posts.filter(p => !p.hidden).length, signatures: db.signatures.length });
+    return send(res, 200, { ok: true, version: process.env.APP_VERSION || 'dev', posts: db.posts.filter(p => !p.hidden).length, signatures: db.signatures.length });
   }
 
   // /api/posts
