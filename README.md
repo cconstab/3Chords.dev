@@ -117,3 +117,7 @@ test/server.test.js                    API tests
 - [ ] `cp .env.example .env` on the server and set `ADMIN_TOKEN`
 - [ ] Point DNS for 3chords.dev, threechords.dev and both www. names at the server, and install the Caddyfile above
 - [ ] Back up `db.json` on a schedule
+
+## License
+
+MIT, see [LICENSE](LICENSE). Copy us, remix us, outdo us. The fonts in `fonts/` keep their own open licenses (see `fonts/LICENSES.txt`).
