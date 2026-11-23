@@ -83,12 +83,12 @@ Nobody deploys by hand. CI publishes images, and the host pulls them.
 
 | what happens | image tag | where it shows up |
 |---|---|---|
-| a PR is merged to `main` and tests pass | `:staging` (and `:sha-<commit>`) | https://staging.3chords.dev, a few minutes later |
-| a GitHub release is published | `:latest` and `:<release tag>` | https://3chords.dev, a few minutes later |
+| a PR is merged to `main` and tests pass | `:staging` (and `:sha-<commit>`) | https://staging.3chords.dev, within about 10 minutes |
+| a GitHub release is published | `:latest` and `:<release tag>` | https://3chords.dev, within about 10 minutes |
 
 So the routine is: merge PRs, look at staging, and when it's good, publish a release (`gh release create v1.2.0 --generate-notes`). A pre-release gets its own tag but does not touch production.
 
-The publishing is the `publish` job in [`.github/workflows/test.yml`](.github/workflows/test.yml). It only runs after the tests and the Docker boot check pass. The host side is [`deploy/update.sh`](deploy/update.sh), run every 2 minutes from your own crontab: it pulls both tags, restarts a container only when its image changed, and waits for the healthcheck. The host needs no inbound access and CI holds no server credentials.
+The publishing is the `publish` job in [`.github/workflows/test.yml`](.github/workflows/test.yml). It only runs after the tests and the Docker boot check pass. The host side is [`deploy/update.sh`](deploy/update.sh), run every 10 minutes from your own crontab: it asks the registry whether either tag has moved, and only when one has does it download the image, restart that container and wait for the healthcheck. An idle run downloads nothing and logs nothing. The host needs no inbound access and CI holds no server credentials.
 
 `curl https://staging.3chords.dev/api/health` shows which build is live (`"version":"main-<commit>"` on staging, the release tag on production).
 
@@ -112,7 +112,7 @@ deploy/update.sh                         # first run by hand, to see it work
 
 # then let cron do it: paste the line from deploy/crontab.example, fixing the path
 crontab -e
-journalctl -t 3chords-update -f          # what it has been doing
+journalctl -t 3chords-update -f          # deploys and failures (quiet when nothing changed)
 ```
 
 Also add the `staging.3chords.dev` DNS record and the Caddy block above.
