@@ -2,6 +2,6 @@
 # Change the path to wherever the checkout lives.
 #   flock   skips a run if the previous one is still going
 #   Every 10 minutes is a trade: a merge or release goes live at most that long
-#   after CI finishes. An idle run is one small registry request per environment.
+#   after CI finishes. An idle run only compares digests; nothing is pulled.
 #   logger  sends the output to the system log: journalctl -t 3chords-update
 */10 * * * * flock -n /tmp/3chords-update.lock "$HOME/3Chords.dev/deploy/update.sh" 2>&1 | logger -t 3chords-update
