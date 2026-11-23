@@ -11,8 +11,10 @@
 #
 # Nothing is pulled unless there is something new. Each run asks the registry
 # for the digest (the sha256) its tag points at and compares it with the image
-# already on this host. Same digest and the container is running: done, and
-# nothing is printed, so the log only shows real deploys and failures.
+# already on this host. Same digest and the container is running: done.
+#
+# From cron that case prints nothing, so the log only shows real deploys and
+# failures. Run by hand in a terminal, it prints an "up to date" line instead.
 set -eu
 
 cd "$(dirname "$0")/.."
@@ -30,13 +32,18 @@ update() {
     status=1
     return
   fi
+  short=$(printf %s "$remote" | cut -c8-19)
   # what this host has
   have=$(docker image inspect --format '{{join .RepoDigests " "}}' "$image" 2>/dev/null || true)
 
   case " $have " in
     *"@$remote "*)
       # same image and the container is running: nothing to do
-      [ -n "$(docker compose "$@" ps --quiet --status running web)" ] && return
+      if [ -n "$(docker compose "$@" ps --quiet --status running web)" ]; then
+        # say so when a person is watching; stay silent under cron
+        if [ -t 1 ]; then echo "$name: up to date ($short), running"; fi
+        return
+      fi
       ;;
     *)
       if ! out=$(docker compose "$@" pull --quiet web 2>&1); then
@@ -51,7 +58,7 @@ update() {
 
   # --wait blocks until the container's healthcheck passes
   if docker compose "$@" up --detach --no-build --pull never --wait --wait-timeout 60 web >/dev/null 2>&1; then
-    echo "$name: deployed $image ($(printf %s "$remote" | cut -c8-19)), healthy"
+    echo "$name: deployed $image ($short), healthy"
   else
     echo "$name: container did not become healthy" >&2
     docker compose "$@" logs --tail 50 web >&2 || true
