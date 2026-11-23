@@ -88,7 +88,7 @@ Nobody deploys by hand. CI publishes images, and the host pulls them.
 
 So the routine is: merge PRs, look at staging, and when it's good, publish a release (`gh release create v1.2.0 --generate-notes`). A pre-release gets its own tag but does not touch production.
 
-The publishing is the `publish` job in [`.github/workflows/test.yml`](.github/workflows/test.yml). It only runs after the tests and the Docker boot check pass. The host side is [`deploy/update.sh`](deploy/update.sh), run every 10 minutes from your own crontab: it compares the digest (sha256) each tag points at in the registry with the image on the host, and only when they differ does it pull the image, restart that container and wait for the healthcheck. An idle run pulls nothing and logs nothing. The host needs no inbound access and CI holds no server credentials.
+The publishing is the `publish` job in [`.github/workflows/test.yml`](.github/workflows/test.yml). It only runs after the tests and the Docker boot check pass. The host side is [`deploy/update.sh`](deploy/update.sh), run every 10 minutes from your own crontab: it compares the digest (sha256) each tag points at in the registry with the image on the host, and only when they differ does it pull the image, restart that container and wait for the healthcheck. An idle run pulls nothing and logs nothing; run by hand in a terminal, it prints an "up to date" line for each environment. The host needs no inbound access and CI holds no server credentials.
 
 `curl https://staging.3chords.dev/api/health` shows which build is live (`"version":"main-<commit>"` on staging, the release tag on production).
 
