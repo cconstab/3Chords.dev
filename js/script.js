@@ -59,7 +59,12 @@
 
   /* ---------- years ------------------------------------------- */
   const year = new Date().getFullYear();
-  ['year', 'footer-year'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = year; });
+  // only the footer follows the calendar; the hero's 2026 is fixed, to pair with 1976
+  ['footer-year'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = year; });
+  // once 2026 is over, the hero talks about it in the past tense
+  const heroNow = document.getElementById('hero-now');
+  const heroSince = document.getElementById('hero-since');
+  if (heroNow && heroSince && year > 2026) { heroNow.hidden = true; heroSince.hidden = false; }
 
   /* ---------- mobile nav -------------------------------------- */
   const navToggle = $('.nav-toggle');
